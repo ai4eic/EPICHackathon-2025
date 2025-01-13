@@ -26,20 +26,20 @@
               <a class="new-navstyle" href="{{ url_for('logout') }}">Logout</a>
               <a class="new-navstyle" href="{{ url_for('allteams') }}">All Teams</a>
               <a class="new-navstyle" href="{{ url_for('current_teamstat') }}">Team Stats</a>
-              <a class="new-navstyle" href="{{ url_for('chat', session_id = sess_uuid) }}">Chat</a>
+              <!-- <a class="new-navstyle" href="{{ url_for('chat', session_id = sess_uuid) }}">Chat</a> -->
               {% else %}
               <a class="new-navstyle" href="{{ url_for('leaderboard') }}">Home</a>
               <a class="new-navstyle" href="{{ url_for('submit') }}">Submit</a>
               <a class="new-navstyle" href="{{ url_for('login') }}">Login</a>
               <a class="new-navstyle" href="{{ url_for('allteams') }}">All Teams</a>
-              <a class="new-navstyle" href="{{ url_for('chat', session_id = sess_uuid) }}">Chat</a>
+              <!-- <a class="new-navstyle" href="{{ url_for('chat', session_id = sess_uuid) }}">Chat</a> -->
               {% endif %}
         </div>
       </nav>
       <div class = "container">
-            <h1 class="glow" href="eic.ai"> <a href="https://eic.ai">
-              <img class="logo-img" src="{{url_for('static', filename='images/ai4eic-logo.png')}}">
-            </a>  AI4EIC Hackathon 2023</h1>
+            <h1 class="glow" href="epic-eic-org"> <a href="https://www.epic-eic.org/">
+              <img class="logo-img" src="{{url_for('static', filename='images/ePIC-logo.png')}}">
+            </a>  ePIC Hackathon 2025</h1>
             <h2 class="whitecolorh2" id = 'demo'></h2>
       </div>
     </header>
