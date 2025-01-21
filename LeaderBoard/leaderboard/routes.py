@@ -48,109 +48,89 @@ def recent_submissions():
     return render_template('error_500.html')
 @app.route("/logout")
 def logout():
-    logout_user()
     session.clear()
+    logout_user()
     flash("You have been logged out!", "info")
     return redirect(request.args.get('next', url_for('leaderboard')))
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    print ("Session if is ", session.get("id"))
+    print ("Session ID: ", session.get("_id"))
     print ("USER AUTHENTICATED: ", current_user.is_authenticated)  
     if not github.authorized and not current_user.is_authenticated:
         return redirect(url_for("github.login"))
-    _oauth = session.get("github_oauth_token")
-    print (f"github info is : {_oauth} and {github.authorized}")
-    print ("Session UUID is : ", session.get("userUUID"))
-    if session.get("userUUID"):
-        print ("User UUID is : ", session["userUUID"])
-        user = User.query.filter_by(userHash = str(session["userUUID"])).first()
-        if user:
-            login_user(user)
-            flash(f"Welcome back {user.username}", "info")
-            session["userUUID"] = user.userHash
-            session["username"] = user.username
-            session["uid"] = user.git_id
-            session["name"] = user.name
-            session["git_url"] = user.git_url
-            session["avatar_url"] = user.avatar_url
-            return redirect(request.args.get('next', url_for('leaderboard')))
-        else:
-            return redirect(url_for('signup', val = 1))
+    if current_user.is_authenticated:
+        return redirect(url_for('leaderboard'))
+    account_resp = github.get("/user")
+    if account_resp.ok:
+        account_info = account_resp.json()
+        git_id = account_info.get('id')
+        username = account_info.get('login')
+        user_hash = uuid5(NAMESPACE_OID, f"{git_id}")
+        user = User.query.filter_by(userHash = str(user_hash)).first()
+        if not user:
+            session.update({
+                "userUUID": user_hash,
+                "username": username,
+                "uid": git_id,
+                "name": account_info.get('name') or "FirstName LastName",
+                "git_url": account_info.get('html_url'),
+                "avatar_url": account_info.get('avatar_url')
+                
+            })
+            flash("Github Authenticated !! Please complete your sign-up information.", "info")
+            return redirect(url_for('signup'))
+        login_user(user)
+        flash(f"Welcome back {user.username}", "info")
+        return redirect(request.args.get('next', url_for('leaderboard')))
+    elif account_resp.status_code == 403:
+        flash("GitHub API rate limit exceeded, please try again later", "danger")
+        return redirect(url_for('index'))
+    elif account_resp.status_code == 401:
+        flash("Github Authentication failed", "danger")
+        return redirect(url_for('index'))
     else:
-        account_resp = github.get("/user")
-        if account_resp.ok:
-            rates = github.get("/rate_limit")
-            print ("rates: ", rates.json())
-            account_info = account_resp.json()
-            uname = account_info.get('login')
-            uid = account_info.get('id')
-            userUUID = uuid5(NAMESPACE_OID, f"{uid}")
-            session["userUUID"] = userUUID
-            session["username"] = uname
-            session["uid"] = uid
-            session["name"] = account_info.get('name')
-            session["git_url"] = account_info.get('html_url')
-            session["avatar_url"] = account_info.get('avatar_url')
-            user = User.query.filter_by(userHash = str(userUUID)).first()
-            if user:
-                login_user(user)
-                flash(f"Welcome back {user.username}", "info")
-                session["userUUID"] = user.userHash
-                session["username"] = user.username
-                session["uid"] = user.git_id
-                session["name"] = user.name
-                session["git_url"] = user.git_url
-                session["avatar_url"] = user.avatar_url
-                return redirect(request.args.get('next', url_for('leaderboard')))
-            else:
-                return redirect(url_for('signup', val = 0))
+        flash("Unexpected error occurred, please try again later", "danger")
+        return redirect(url_for('index'))
 
-@app.route("/signup/<val>", methods=['GET', 'POST'])
-def signup(val): 
+@app.route("/signup", methods=['GET', 'POST'])
+def signup(): 
     if not github.authorized:
-        print ("This is something wrong")
-        return render_template('somethingwrong_contact.html')
-    user_info = dict()
+        flash("Authentication error. Please login via GitHub", "danger")
+        message = """
+        Unable to authenticate with GitHub. 
+        Please try logging in again or contact support if the issue persists.
+        """
+        render_template("somethingwrong_contact.html", message=message)
+    user_info = {}
     disable_form = False
-    val = int(val)
-    if (val == 0):
-        # Get user information from the github
-        account_resp = github.get("/user")
-        if account_resp.ok:
-            account_info = account_resp.json()
-            print (f"account info : {account_info}")
-            uname = account_info.get('login')
-            uid = account_info.get('id')
-            userUUID = uuid5(NAMESPACE_OID, f"{uid}")
-            name = account_info.get('name')
-            if not name:
-                name = 'FirstName LastName'
-            user_info = {
-                "username": uname,
-                "fname": name.split(' ')[0],
-                "lname": name.split(' ')[1],
-            }
-            session["userUUID"] = userUUID
-            session["username"] = uname
-            session["uid"] = uid
-            session["name"] = name
-            session["git_url"] = account_info.get('html_url')
-            session["avatar_url"] = account_info.get('avatar_url')
-    elif (val == 1):
+    account_resp = github.get("/user")
+    if account_resp.ok:
+        account_info = account_resp.json()
+        name = account_info.get('name') or "FirstName LastName"
         user_info = {
-            "username": session["username"],
-            "fname": session["name"].split(' ')[0],
-            "lname": session["name"].split(' ')[1],
+            "username": account_info.get('login'),
+            "fname": name.split(' ')[0],
+            "lname": name.split(' ')[1],
         }
+        session["userUUID"] = uuid5(NAMESPACE_OID, f"{account_info.get('id')}") # store only UUID
+        session["username"] = account_info.get('login')
+        session["name"] = name
+        session["uid"] = account_info.get('id')
+        session["git_url"] = account_info.get('html_url')
+        session["avatar_url"] = account_info.get('avatar_url')
     else:
-        return render_template('somethingwrong_contact.html')
+        flash("Unable to get user information from GitHub", "danger")
+        return redirect(url_for('index'))
+    print ("Getting organizational information for User info: ", user_info)
     org_status = github.get(f"/orgs/{app.config['ORG_NAME']}/members/{user_info['username']}")
     print ("Status code is : ", org_status.status_code)
     if (int(org_status.status_code) != 204 and not app.config['DEBUG']):
         flash("You are not a member of the EIC organization, please contact ePIC Hackathon Organizers", "danger")
         disable_form = True
+    
     form = SignUp(data = user_info)
+    
     if disable_form:
         form.username.render_kw = {"disabled": "disabled"}
         form.fname.render_kw = {"disabled": "disabled"}
@@ -158,12 +138,17 @@ def signup(val):
         form.institution.render_kw = {"disabled": "disabled"}
         form.role.render_kw = {"disabled": "disabled"}
         form.submit.render_kw = {"disabled": "disabled"}
-    else:
-        pass
+    
     if form.validate_on_submit():
+        if not form.csrf_token.data:
+            session.clear()
+            flash("CSRF token is missing or invalid. Please try again", "danger")
+            return redirect(url_for('signup'))
+        name = f"{form.fname.data} {form.lname.data}"
+        session["name"] = name
         try:
-            user = User(username = form.username.data, 
-                        name = f"{form.fname.data} {form.lname.data}",
+            user = User(username = form.username.data,
+                        name = name,
                         git_id = session["uid"],
                         git_url = session["git_url"],
                         avatar_url = session["avatar_url"],
@@ -172,17 +157,10 @@ def signup(val):
                         overallscore = 0,
                         Nattempts = 0
             )
-            session["username"] = user.username
-            session["name"] = user.name
-            session["uid"] = session["uid"]
-            session["userUUID"] = user.userHash
-            session["git_url"] = user.git_url
-            session["avatar_url"] = user.avatar_url
-            
             db.session.add(user)
             db.session.commit()
             login_user(user)
-            
+
             # creator the user upload folder
             user_folder = os.path.join(app.config['UPLOAD_FOLDER'], user.userHash)
             if(not os.path.exists(user_folder)):
@@ -190,8 +168,11 @@ def signup(val):
             flash(f"Account created for {form.username.data}!", "success")
             return redirect(url_for('leaderboard'))
         except Exception as e:
-            print (e)
+            print ("ISSUE WITH CREATION OF ACCOUNT ", e)
+            print ("ALL SESSION DATA: ", session)
+            session.clear()
             flash(f"Account creation failed for {form.username.data}! Contact ePIC Hackathon Organizers", "danger")
+            return redirect(url_for('leaderboard'))
     #print ("Geo location : ", request.environ.get('HTTP_X_REAL_IP', request.remote_addr))
     return render_template('signup.html', title='Sign Up', form=form)
 

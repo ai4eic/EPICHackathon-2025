@@ -4,9 +4,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from datetime import timedelta
-from flask_dance.contrib.github import make_github_blueprint, github
+from flask_dance.contrib.github import make_github_blueprint
 from flask_wtf.csrf import CSRFProtect
-
+from flask_session import Session
 
 app = Flask(__name__)
 
@@ -44,20 +44,21 @@ login_manager.needs_refresh_message = (
 )
 login_manager.needs_refresh_message_category = "info"
 
+
 # IF you want to store the session in the filesystem 
 # (Session data could be shared between different instances of the app)
-#app.config['SESSION_TYPE'] = 'filesystem' 
+# app.config['SESSION_TYPE'] = 'filesystem' 
 
-# # If you want to store the session in the database
-# app.config["SESSION_PERMANENT"] = True
-# # Set the lifetime of the session
-# app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=4) # 4 hours
-# app.config["SESSION_USE_SIGNER"] = True # Sign the session cookie
-# #app.config["SESSION_FILE_DIR"] = "flask_sessions"  # Directory to store session files
-# app.config["SESSION_COOKIE_SECURE"] = True  # Use HTTPS only
-# app.config["SESSION_COOKIE_HTTPONLY"] = True  # Prevent JavaScript access
-# app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Mitigate CSRF
-# app.config["SESSION_COOKIE_NAME"] = "ePIC_Hackathon_2025"  # Custom cookie name
+# If you want to store the session in the database
+app.config["SESSION_PERMANENT"] = True
+# Set the lifetime of the session
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=4) # 4 hours
+app.config["SESSION_USE_SIGNER"] = True # Sign the session cookie
+#app.config["SESSION_FILE_DIR"] = "flask_sessions"  # Directory to store session files
+app.config["SESSION_COOKIE_SECURE"] = True  # Use HTTPS only
+app.config["SESSION_COOKIE_HTTPONLY"] = True  # Prevent JavaScript access
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Mitigate CSRF
+app.config["SESSION_COOKIE_NAME"] = "ePIC_Hackathon_2025"  # Custom cookie name
 # sess = Session(app)
 
 # Make sure to have GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in the environment
