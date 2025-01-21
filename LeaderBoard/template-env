@@ -1,5 +1,5 @@
 # VARIABLE FOR THE APP
-secret_key=put-your-secret_key
+SECRET_KEY=put-your-secret_key
 DEBUG=True
 
 # DATABASE VARIABLES

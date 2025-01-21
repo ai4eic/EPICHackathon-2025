@@ -55,7 +55,8 @@ def logout():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    if not github.authorized:
+    print ("USER AUTHENTICATED: ", current_user.is_authenticated)  
+    if not github.authorized and not current_user.is_authenticated:
         return redirect(url_for("github.login"))
     _oauth = session.get("github_oauth_token")
     print (f"github info is : {_oauth} and {github.authorized}")
@@ -195,7 +196,7 @@ def signup(val):
 @app.route("/submit", methods=['GET', 'POST'])
 @login_required
 def submit():
-    if not github.authorized:
+    if not github.authorized and not current_user.is_authenticated:
         return redirect(url_for("login"))
     uname = session.get("username")
     name = session.get("name")
