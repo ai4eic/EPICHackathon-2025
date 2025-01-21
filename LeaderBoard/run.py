@@ -1,5 +1,3 @@
-from leaderboard import app
-from leaderboard import db
 import argparse, os
 from dotenv import load_dotenv
 if __name__ == "__main__":
@@ -11,6 +9,8 @@ if __name__ == "__main__":
         exit()
     envfile = args.env
     load_dotenv(envfile)
+    from leaderboard import app
+    from leaderboard import db
     print (os.getenv("GITHUB_CLIENT_ID"))
     db.create_all()
     print ("Database created")

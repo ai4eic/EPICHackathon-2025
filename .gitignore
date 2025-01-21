@@ -20,3 +20,5 @@ Test_Examples
 
 *Old*
 *.env*
+
+*.db*
