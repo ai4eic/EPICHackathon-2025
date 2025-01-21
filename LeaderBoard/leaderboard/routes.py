@@ -1,7 +1,7 @@
 import os
 from flask import render_template, url_for, flash, redirect, abort, request, jsonify, session
 from flask import abort
-from leaderboard import app, db, bcrypt
+from leaderboard import app, db, csrf, bcrypt
 from leaderboard.forms import SignUp, SubmitForm
 from leaderboard.models import User, Question
 from flask_login import login_user, current_user, logout_user, login_required, user_needs_refresh
@@ -20,6 +20,10 @@ from flask_dance.contrib.github import github
 def handle_exception(e):
     return render_template("error_500.html", e=e), 500
 """
+@app.before_request
+def csrf_protext():
+    if request.method in ("POST", "PUT", "DELETE"):
+        csrf.protect()
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('page_not_found.html'), 404
