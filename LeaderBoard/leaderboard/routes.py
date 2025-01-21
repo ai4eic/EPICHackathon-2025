@@ -57,7 +57,8 @@ def logout():
 def login():
     if not github.authorized:
         return redirect(url_for("github.login"))
-    print (f"github info is : {session.get("github_oauth_token")} and {github.authorized}")
+    _oauth = session.get("github_oauth_token")
+    print (f"github info is : {_oauth} and {github.authorized}")
     print ("Session UUID is : ", session.get("userUUID"))
     if session.get("userUUID"):
         print ("User UUID is : ", session["userUUID"])
