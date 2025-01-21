@@ -55,6 +55,7 @@ def logout():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    print ("Session if is ", session.get("id"))
     print ("USER AUTHENTICATED: ", current_user.is_authenticated)  
     if not github.authorized and not current_user.is_authenticated:
         return redirect(url_for("github.login"))
@@ -108,6 +109,7 @@ def login():
 @app.route("/signup/<val>", methods=['GET', 'POST'])
 def signup(val): 
     if not github.authorized:
+        print ("This is something wrong")
         return render_template('somethingwrong_contact.html')
     user_info = dict()
     disable_form = False
