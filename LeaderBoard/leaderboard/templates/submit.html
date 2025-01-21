@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+        <form method="POST" action="" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group whitecolor">
+                <legend class="border-bottom mb-4 whitecolorh2">Question Submission portal</legend>
+                <div class="form-group whitecolor">
+                    {{ form.username.label(class="form-control-label") }}
+                    {% if form.username.errors %}
+                        {{ form.username(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.username.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.username(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                <div class="form-group whitecolor">
+                    {{ form.name.label(class="form-control-label") }}
+
+                    {% if form.name.errors %}
+                        {{ form.name(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.name(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                <div class="form-group whitecolor">
+                    {{ form.qnumber.label(class="form-control-label") }}
+                    {% if form.qnumber.errors %}
+                        {{ form.qnumber(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.qnumber.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.qnumber(class="form-control form-control-lg")}}
+                    {% endif %}
+                </div>
+                <div class="form-group whitecolor">
+                    {{ form.result_file.label(class="form-control-label") }}
+                    {{ form.result_file(class="form-control-file form-control-lg") }}
+                    {% if form.result_file.errors %}
+                        {% for error in form.result_file.errors %}
+                            <span class="text-danger whitecolor">{{ error }}</span><br>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="form-group whitecolor">
+                    {{ form.remark.label(class = "form-control-label") }}
+                    {{ form.remark(class="form-control form-control-lg is-invalid") }}
+                    {% if form.remark.errors %}
+                        {% for error in form.remark.errors %}
+                            <span class="text-danger whitecolor">{{ error }}</span><br>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </fieldset>
+            <div class="form-group whitecolor">
+                {{ form.submit(class="btn btn-outline-info btn-onclick") }}
+            </div>
+            </div>
+        </form>
+    </div>
+{% endblock content %}
