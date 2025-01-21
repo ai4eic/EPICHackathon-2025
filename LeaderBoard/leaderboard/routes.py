@@ -1,0 +1,308 @@
+import os
+from flask import render_template, url_for, flash, redirect, abort, request, jsonify, session
+from flask import abort
+from leaderboard import app, db, bcrypt
+from leaderboard.forms import SignUp, SubmitForm
+from leaderboard.models import User, Question
+from flask_login import login_user, current_user, logout_user, login_required, user_needs_refresh
+from werkzeug.utils import secure_filename
+from datetime import datetime
+from leaderboard.evaluator import Evaluate
+import logging
+from markupsafe import Markup
+# Some default settings
+
+from uuid import NAMESPACE_OID, uuid1, uuid5
+from flask_dance.contrib.github import github
+
+"""
+    @app.errorhandler(Exception)
+def handle_exception(e):
+    return render_template("error_500.html", e=e), 500
+"""
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('page_not_found.html'), 404
+
+@app.errorhandler(403)
+def access_forbidden(e):
+    return render_template('acess_denied.html'), 403
+@app.errorhandler(400)
+def bad_request(e):
+    return render_template('error_500.html'), 400
+@app.route("/")
+@app.route("/leaderboard")
+def leaderboard():
+    print (User.query.all())
+    UserInfo = User.query.order_by(User.overallscore.desc()).all()
+    return render_template('leaderboard.html', userinfo = UserInfo)
+
+
+@app.route("/allusers")
+def allusers():
+    return render_template('error_500.html')
+
+@app.route("/recent_submissions")
+@login_required
+def recent_submissions():
+    return render_template('error_500.html')
+@app.route("/logout")
+def logout():
+    try:
+        tname = current_user.teamname
+        uname = current_user.username
+    except AttributeError as e:
+        print ("Already logged out")
+    print("Logging you out now !!!!")
+    session_user = session.get("user", None)
+    session_id = session.get("_id", None)
+    session.clear()
+    session_dir = app.config["SESSION_FILE_DIR"]
+    if session_id:
+        session_file = os.path.join(session_dir, session_id)
+        if os.path.exists(session_file):
+            os.remove(session_file)
+    logout_user()
+    flash(f'{session_user} has been logged out!', 'info')
+    return redirect(request.args.get('next', url_for('leaderboard')))
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if not github.authorized:
+        return redirect(url_for("github.login"))
+    print ("Session UUID is : ", session.get("userUUID"))
+    if session.get("userUUID"):
+        print ("User UUID is : ", session["userUUID"])
+        user = User.query.filter_by(userHash = str(session["userUUID"])).first()
+        if user:
+            login_user(user)
+            flash(f"Welcome back {user.username}", "info")
+            session["userUUID"] = user.userHash
+            session["username"] = user.username
+            session["uid"] = user.git_id
+            session["name"] = user.name
+            session["git_url"] = user.git_url
+            session["avatar_url"] = user.avatar_url
+            return redirect(request.args.get('next', url_for('leaderboard')))
+        else:
+            return redirect(url_for('signup', val = 1))
+    else:
+        account_resp = github.get("/user")
+        if account_resp.ok:
+            rates = github.get("/rate_limit")
+            print ("rates: ", rates.json())
+            account_info = account_resp.json()
+            uname = account_info.get('login')
+            uid = account_info.get('id')
+            userUUID = uuid5(NAMESPACE_OID, f"{uid}")
+            session["userUUID"] = userUUID
+            session["username"] = uname
+            session["uid"] = uid
+            session["name"] = account_info.get('name')
+            session["git_url"] = account_info.get('html_url')
+            session["avatar_url"] = account_info.get('avatar_url')
+            user = User.query.filter_by(userHash = str(userUUID)).first()
+            if user:
+                login_user(user)
+                flash(f"Welcome back {user.username}", "info")
+                session["userUUID"] = user.userHash
+                session["username"] = user.username
+                session["uid"] = user.git_id
+                session["name"] = user.name
+                session["git_url"] = user.git_url
+                session["avatar_url"] = user.avatar_url
+                return redirect(request.args.get('next', url_for('leaderboard')))
+            else:
+                return redirect(url_for('signup', val = 1))
+
+@app.route("/signup/<val>", methods=['GET', 'POST'])
+def signup(val): 
+    if not github.authorized:
+        return render_template('somethingwrong_contact.html')
+    user_info = dict()
+    disable_form = False
+    val = int(val)
+    if (val == 0):
+        # Get user information from the github
+        account_resp = github.get("/user")
+        if account_resp.ok:
+            account_info = account_resp.json()
+            uname = account_info.get('login')
+            uid = account_info.get('id')
+            userUUID = uuid5(NAMESPACE_OID, f"{uid}")
+            name = account_info.get('name')
+            user_info = {
+                "username": uname,
+                "fname": name.split(' ')[0],
+                "lname": name.split(' ')[1],
+            }
+            session["userUUID"] = userUUID
+            session["username"] = uname
+            session["uid"] = uid
+            session["name"] = name
+            session["git_url"] = account_info.get('html_url')
+            session["avatar_url"] = account_info.get('avatar_url')
+    elif (val == 1):
+        user_info = {
+            "username": session["username"],
+            "fname": session["name"].split(' ')[0],
+            "lname": session["name"].split(' ')[1],
+        }
+    else:
+        return render_template('somethingwrong_contact.html')
+    org_status = github.get(f"/orgs/{app.config['ORG_NAME']}/members/{user_info['username']}")
+    print ("Status code is : ", org_status.status_code)
+    if (int(org_status.status_code) != 204):
+        flash("You are not a member of the EIC organization, please contact ePIC Hackathon Organizers", "danger")
+        disable_form = True
+    form = SignUp(data = user_info)
+    if disable_form:
+        form.username.render_kw = {"disabled": "disabled"}
+        form.fname.render_kw = {"disabled": "disabled"}
+        form.lname.render_kw = {"disabled": "disabled"}
+        form.institution.render_kw = {"disabled": "disabled"}
+        form.role.render_kw = {"disabled": "disabled"}
+        form.submit.render_kw = {"disabled": "disabled"}
+    else:
+        pass
+    if form.validate_on_submit():
+        try:
+            user = User(username = form.username.data, 
+                        name = f"{form.fname.data} {form.lname.data}",
+                        git_id = session["uid"],
+                        git_url = session["git_url"],
+                        avatar_url = session["avatar_url"],
+                        institution = form.institution.data,
+                        userHash = str(session["userUUID"]),
+                        overallscore = 0,
+                        Nattempts = 0
+            )
+            session["username"] = user.username
+            session["name"] = user.name
+            session["uid"] = session["uid"]
+            session["userUUID"] = user.userHash
+            session["git_url"] = user.git_url
+            session["avatar_url"] = user.avatar_url
+            
+            db.session.add(user)
+            db.session.commit()
+            login_user(user)
+            
+            # creator the user upload folder
+            user_folder = os.path.join(app.config['UPLOAD_FOLDER'], user.userHash)
+            if(not os.path.exists(user_folder)):
+                os.makedirs(user_folder)
+            flash(f"Account created for {form.username.data}!", "success")
+            return redirect(url_for('leaderboard'))
+        except Exception as e:
+            print (e)
+            flash(f"Account creation failed for {form.username.data}! Contact ePIC Hackathon Organizers", "danger")
+    #print ("Geo location : ", request.environ.get('HTTP_X_REAL_IP', request.remote_addr))
+    return render_template('signup.html', title='Sign Up', form=form)
+
+@app.route("/submit", methods=['GET', 'POST'])
+@login_required
+def submit():
+    if not github.authorized:
+        return redirect(url_for("login"))
+    uname = session.get("username")
+    name = session.get("name")
+    uid = session.get("uid")
+    userUUID = session.get("userUUID")
+    user = User.query.filter_by(userHash = userUUID).first()
+    disable_form = False
+    if not user or not userUUID:
+        flash("Please login/re-login to submit your solutions", "danger")
+        disable_form = True
+    data = {"username": uname, "name": name}
+    form = SubmitForm(data = data)
+    if disable_form:
+        form.username.render_kw = {"disabled": "disabled"}
+        form.name.render_kw = {"disabled": "disabled"}
+        form.qnumber.render_kw = {"disabled": "disabled"}
+        form.result_file.render_kw = {"disabled": "disabled"}
+        form.submit.render_kw = {"disabled": "disabled"}
+    form.username.render_kw = {"disabled": "disabled"}
+    form.name.render_kw = {"disabled": "disabled"}
+    
+    if form.validate_on_submit():
+        # Get the user information and move the file to the secure place
+        _file = form.result_file.data
+        now = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
+        _filename = secure_filename("result_" + now + "_" + _file.filename )
+        
+        qnumber = int(form.qnumber.data)
+        user_folder = os.path.join(app.config['UPLOAD_FOLDER'], user.userHash, f'{qnumber}')
+        if(not os.path.exists(user_folder)):
+            os.makedirs(user_folder)
+        filepath = os.path.join(user_folder, _filename)
+        _file.save(filepath)
+        
+        
+    return render_template("submit.html", title="Submit your solutions", form = form)
+"""
+    uname = ""
+    tname = ""
+    if current_user.is_authenticated:
+        uname = current_user.username
+        tname = current_user.teamname
+    form = SubmitForm()
+    if form.validate_on_submit():
+        team = Team.query.filter_by(name=form.teamname.data).first()
+        user = User.query.filter_by(username=form.username.data, teamname = form.teamname.data).first()
+        if user and team and bcrypt.check_password_hash(team.password, form.password.data):
+            f = form.result_file.data
+            qnumber = int(form.qnumber.data)
+            team_folder = os.path.join(app.config['UPLOAD_FOLDER'], team.name)
+            if(not os.path.exists(team_folder)):
+                os.makedirs(team_folder)
+            user_folder = os.path.join(team_folder, user.username)
+            if(not os.path.exists(user_folder)):
+                os.makedirs(user_folder)
+            now = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
+            #filename = f"Question{qnumber}_" + now + "_" + secure_filename(f.filename)
+            file_path = str(f) # Remote file
+            filename = file_path.split('/')[-1]
+            #filepath = os.path.join(user_folder, filename)
+            push = False # Means pull
+            utility.scp_file(file_path,user_folder ,push)
+            eval_path = os.path.join(user_folder,filename)
+            status, accuracy_score = evaluate(eval_path, qnumber)
+            question = Question(teamname = team.name,
+                                username = user.username,
+                                qnumber = qnumber,
+                                qscore = accuracy_score,
+                                filename = filename,
+                                remarks = status
+                                )
+            db.session.add(question)
+            db.session.commit()
+            if (qnumber == 1 and team.q1_bestscore < accuracy_score):
+                team.q1_bestscore = accuracy_score
+                team.overallscore = team.q1_bestscore + team.q2_bestscore + team.q3_bestscore
+
+            if (qnumber == 2 and team.q2_bestscore < accuracy_score):
+                team.q2_bestscore = accuracy_score
+                team.overallscore = team.q1_bestscore + team.q2_bestscore + team.q3_bestscore
+
+            if (qnumber == 3 and team.q3_bestscore < accuracy_score):
+                team.q3_bestscore = accuracy_score
+                team.overallscore = team.q1_bestscore + team.q2_bestscore + team.q3_bestscore
+
+            db.session.commit()
+            if(status == 'OK'):
+                flash(f"Score for the submission is {accuracy_score:.4f} for Question : {qnumber}", "info")
+            else:
+                flash(status, "danger")
+            #return redirect(url_for('submit'))
+
+        else:
+            flash("Invalid Credentials, Check team, username and password is correct", 'danger')
+            #return redirect(url_for('leaderboard'))
+    return render_template('submit.html', title='Submit for Evaluations', form=form,
+                            tname = tname, uname = uname)
+"""
+"""
+def submit():
+    return render_template("will_open.html")
+"""
