@@ -1,14 +1,14 @@
 import os
 from flask import render_template, url_for, flash, redirect, abort, request, session
 from leaderboard import app, db, csrf, bcrypt
-from leaderboard.forms import SignUp, SubmitForm, LoginForm
+from leaderboard.forms import SignUpForm, SubmitForm, LoginForm
 from leaderboard.models import User, Question
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from leaderboard.evaluator import * # EvaluateDIRC, EvaluateLowQ2
+from sqlalchemy.exc import SQLAlchemyError
 
-from markupsafe import Markup
 # Some default settings
 
 from uuid import NAMESPACE_OID, uuid1, uuid5
@@ -44,15 +44,65 @@ def leaderboard():
 
 @app.route("/allusers")
 def allusers():
-    return render_template('error_500.html')
+    users = User.query.all()
+    for user in users:
+        print ("user", user.username)
+    return render_template('allusers.html', userInfo = users)
 
-@app.route("/recent_submissions")
+@app.route("/profile", methods=['GET', 'POST'])
 @login_required
-def recent_submissions():
-    return render_template('error_500.html')
+def profile():
+    if not github.authorized or not current_user.is_authenticated:
+        flash("You are not authorized to access this page", "danger")
+        return redirect(url_for("login"))
+    user_info = {
+        "fname": current_user.fname,
+        "password": current_user.password,
+        "lname": current_user.lname,
+        "username": current_user.username,
+        "institution": current_user.institution,
+        "role": current_user.role
+    }
+    form = SignUpForm(data = user_info)
+    form.change_submitlabel("Update Profile")
+    form.username.render_kw = {"disabled": "disabled"}
+    form.password.render_kw = {"placeholder": "Change Password"}
+    print ("current_questions", current_user.questions)
+    if form.validate_on_submit():
+        # check if the form data is changed
+        form_changed = False
+        form_data = form.data
+        for key, value in form_data.items():
+            if value != user_info[key]:
+                form_changed = True
+                break
+        if form_changed:
+            user = User.query.get(current_user.git_id)
+            user.set_password(form.password.data)
+            user.fname = form.fname.data
+            user.lname = form.lname.data
+            user.institution = form.institution.data
+            user.role = form.role.data
+        try:
+            db.session.commit()
+            flash("Profile updated successfully, You are logged out log back in", "success")
+            return redirect(url_for('logout'))
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            print (user.password)
+            print (f"ERROR IN UPDATING DATABASE for {current_user}: \n ----- ", e)
+            flash("Cannot update the profile. Please try again", "danger")
+            return redirect(url_for('profile'))
+        except Exception as e:
+            print (f"ERROR IN UPDATING DATABASE for {current_user}: \n ----- ", e)
+            db.session.rollback()
+            flash("Cannot update the profile. Please try again by logging back in", "danger")
+            return redirect(url_for('profile'))
+    return render_template('profile.html', form=form, submissions = current_user.questions)
 @app.route("/logout")
 def logout():
     session.clear()
+    db.session.remove()
     logout_user()
     flash("You have been logged out!", "info")
     return redirect(request.args.get('next', url_for('leaderboard')))
@@ -146,7 +196,7 @@ def signup(uname):
         return redirect(url_for('index'))
     print ("USER DATA: ", user_data)
     _user_data = {"username": user_data['username'], "fname": user_data['fname'], "lname": user_data['lname']}
-    form = SignUp(data = _user_data)
+    form = SignUpForm(data = _user_data)
     print ("csrf_token: ", form.csrf_token.data)
     if form.validate_on_submit():
         print ("FORM VALIDATED")
@@ -177,6 +227,11 @@ def signup(uname):
                 os.makedirs(user_folder)
             flash(f"Account created for {form.username.data}! log back in", "success")
             return redirect(url_for('leaderboard'))
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            print (f"USER DATABASE CREATION ERROR FOR {user} {e}")
+            flash(f"Account creation failed for {form.username.data}! Contact ePIC Hackathon Organizers", "danger")
+            return redirect(url_for('logout'))
         except Exception as e:
             print (e)
             flash(f"Account creation failed for {form.username.data}! Contact ePIC Hackathon Organizers", "danger")

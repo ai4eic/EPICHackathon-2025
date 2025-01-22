@@ -41,7 +41,7 @@ class SubmitForm(FlaskForm):
     submit = SubmitField('Evaluate Results', render_kw={"onclick": "loading();"})
 
 
-class SignUp(FlaskForm):
+class SignUpForm(FlaskForm):
     username = StringField('User Name', render_kw={"placeholder": "Enter your username"},
                         validators = [DataRequired()])
     fname = StringField('First name', render_kw={"placeholder": "Enter your first name"},
@@ -66,6 +66,9 @@ class SignUp(FlaskForm):
     )
     
     submit = SubmitField('Login')
+    
+    def change_submitlabel(self, label):
+        self.submit.label.text = label
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()], render_kw={"placeholder": "Enter your username"})
