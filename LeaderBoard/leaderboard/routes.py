@@ -1,5 +1,5 @@
 import os
-from flask import render_template, url_for, flash, redirect, abort, request
+from flask import render_template, url_for, flash, redirect, abort, request, session
 from leaderboard import app, db, csrf, bcrypt
 from leaderboard.forms import SignUp, SubmitForm, LoginForm
 from leaderboard.models import User, Question
@@ -52,6 +52,7 @@ def recent_submissions():
     return render_template('error_500.html')
 @app.route("/logout")
 def logout():
+    session.clear()
     logout_user()
     flash("You have been logged out!", "info")
     return redirect(request.args.get('next', url_for('leaderboard')))
