@@ -50,6 +50,8 @@ class SignUp(FlaskForm):
                         validators=[DataRequired()])
     institution = StringField('Institution', render_kw={"placeholder": "Enter your institution"},
                         validators=[DataRequired()])
+    password = PasswordField('Password', render_kw={"placeholder": "Enter your password"},
+                        validators=[DataRequired()])
     role = SelectField(
         'Designation',
         choices=[
@@ -63,5 +65,11 @@ class SignUp(FlaskForm):
         validators=[DataRequired()]
     )
     
+    submit = SubmitField('Login')
+
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()], render_kw={"placeholder": "Enter your username"})
+    password = PasswordField('Password', validators=[DataRequired()], render_kw={"placeholder": "Enter your password"})
+    remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
 
