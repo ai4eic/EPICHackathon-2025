@@ -11,7 +11,7 @@ if __name__ == "__main__":
     load_dotenv(envfile)
     from leaderboard import app
     from leaderboard import db
-    print (os.getenv("GITHUB_CLIENT_ID"))
-    db.create_all()
-    print ("Database created")
+    with app.app_context():
+        db.create_all()
+        print ("Database created")
     app.run(debug=True)

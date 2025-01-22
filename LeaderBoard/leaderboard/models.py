@@ -64,6 +64,26 @@ class User(db.Model, UserMixin):
                             nullable = False,
                             default = 0
                             )
+    q1_bestscore = db.Column(db.Float,
+                            unique = False,
+                            nullable = False,
+                            default = 0
+                            )
+    q2_bestscore = db.Column(db.Float,
+                            unique = False,
+                            nullable = False,
+                            default = 0
+                            )
+    q1_attempts = db.Column(db.Integer,
+                            unique = False,
+                            nullable = False,
+                            default = 0
+                            )
+    q2_attempts = db.Column(db.Integer,
+                            unique = False,
+                            nullable = False,
+                            default = 0
+                            )
     Nattempts = db.Column(db.Integer,
                             unique = False,
                             nullable = False,

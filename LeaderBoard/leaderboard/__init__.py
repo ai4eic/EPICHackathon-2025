@@ -54,7 +54,7 @@ login_manager.session_protection = "strong"
 # # If you want to store the session in the database
 # app.config["SESSION_PERMANENT"] = True
 # # Set the lifetime of the session
-# app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=4) # 4 hours
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=1) # 4 hours
 app.config["SESSION_USE_SIGNER"] = True # Sign the session cookie
 # #app.config["SESSION_FILE_DIR"] = "flask_sessions"  # Directory to store session files
 app.config["SESSION_COOKIE_SECURE"] = True  # Use HTTPS only

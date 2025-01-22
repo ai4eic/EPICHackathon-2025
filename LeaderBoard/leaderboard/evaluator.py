@@ -2,7 +2,7 @@ import awkward as ak
 import numpy as np
 import uproot
 
-def EvaluateDirc(submit, reference):
+def EvaluateDIRC(submit, reference):
     accuracy = -1.0
     e = None
     try:
@@ -40,4 +40,10 @@ def EvaluateDirc(submit, reference):
     except Exception as _e:
         e = str(_e)
 
+    return accuracy, e
+
+def EvaluateLowQ2(submit, reference):
+    accuracy = -1.0
+    e = None
+    # TODO: Implement the evaluation logic
     return accuracy, e

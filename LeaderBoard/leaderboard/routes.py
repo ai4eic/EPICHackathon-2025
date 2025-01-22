@@ -6,7 +6,7 @@ from leaderboard.models import User, Question
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from leaderboard.evaluator import EvaluateDirc
+from leaderboard.evaluator import * # EvaluateDIRC, EvaluateLowQ2
 
 from markupsafe import Markup
 # Some default settings
@@ -226,11 +226,51 @@ def submit():
             os.makedirs(user_folder)
         filepath = os.path.join(user_folder, _filename)
         _file.save(filepath)
+        func_to_call = eval(f"Evaluate{res_q}")
         # Evaluate the file
         print (res_file, filepath)
-        score, exe_err = EvaluateDirc(filepath, res_file)
+        score, exe_err = func_to_call(filepath, res_file)
         if exe_err:
             flash(f"Error in executing the evaluation script: {exe_err}", "danger")
+            question = Question(userUUID = current_user.userHash,
+                                qnumber = qnumber,
+                                qscore = score,
+                                filename = _filename,
+                                submit_time = datetime.now(),
+                                remarks = form.remark.data,
+                                eval_remarks = f"Evaluation Failed <<<< {exe_err} >>>>"
+                                )
+            return redirect(url_for('submit'))
+        else:
+            flash(f"Your score for Question {qnumber} is {score}", "success")
+            # Update the user score
+            question = Question(userUUID = current_user.userHash,
+                                qnumber = qnumber,
+                                qscore = score,
+                                filename = _filename,
+                                submit_time = datetime.now(),
+                                remarks = form.remark.data,
+                                eval_remarks = "Evaluated"
+                                )
+            user = User.query.get(current_user.git_id)
+        try:
+            db.session.add(question)
+            # update overall score and number of attempts for the user
+            if (qnumber == 1 and not exe_err):
+                user.q1_bestscore = max(user.q1_bestscore, score)
+                user.q1_attempts += 1
+                user.Nattempts += 1
+            if (qnumber == 2 and not exe_err):
+                user.q2_bestscore = max(user.q2_bestscore, score)
+                user.q2_attempts += 1
+                user.Nattempts += 1
+            user.overallscore += score
+            # commit the changes 
+            db.session.commit()       
+        except Exception as e:
+            print (f"ERROR IN UPDATING DATABASE for {current_user} for question {question}: \n ----- ", e)
+            flash(f"Error in updating the database. \n Try resubmitting your solutions or Please contact ePIC Hackathon Organizers", "danger")
+            db.session.rollback()
             return redirect(url_for('submit'))
         print (score)
         
