@@ -172,8 +172,7 @@ def signup(uname):
             user_folder = os.path.join(app.config['UPLOAD_FOLDER'], user.userHash)
             if ( not os.path.exists(user_folder) ):
                 os.makedirs(user_folder)
-            login_user(user)
-            flash(f"Account created for {form.username.data}!", "success")
+            flash(f"Account created for {form.username.data}! log back in", "success")
             return redirect(url_for('leaderboard'))
         except Exception as e:
             print (e)
