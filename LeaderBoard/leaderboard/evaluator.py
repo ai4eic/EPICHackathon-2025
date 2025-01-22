@@ -40,10 +40,51 @@ def EvaluateDIRC(submit, reference):
     except Exception as _e:
         e = str(_e)
 
-    return accuracy, e
+    return accuracy, e, None
+
+
 
 def EvaluateLowQ2(submit, reference):
     accuracy = -1.0
     e = None
-    # TODO: Implement the evaluation logic
-    return accuracy, e
+    rme_momentum, rme_momentum_z, rme_momentum_theta = None, None, None
+    try:
+        reference = uproot.open({reference: "events"})
+        submit = uproot.open({submit: "events"})
+            
+        # Full data set
+        reference_momentum = reference["_TaggerTrackerTargetTensor_floatData"].array()
+        submitted_momentum = submit["_TaggerTrackerPredictionTensor_floatData"].array()
+
+        # Select only events with a single track
+        num_tracks = submit["_TaggerTrackerPredictionTensor_shape"].array()[:,0]
+        reference_momentum = reference_momentum[num_tracks == 1]
+        submitted_momentum = submitted_momentum[num_tracks == 1]
+
+        polar_angle = np.arctan2(np.sqrt(reference_momentum[:, 0]**2 + reference_momentum[:, 1]**2), reference_momentum[:, 2])
+
+        # Multiply columns 0 and 1 by 100
+        reference_momentum = (np.array(reference_momentum)*np.array([100,100,1]))
+        submitted_momentum = (np.array(submitted_momentum)*np.array([100,100,1]))
+
+        # Select only events with z > -0.7
+        reference_momentum_z = reference_momentum[reference_momentum[:, 2] > -0.7]
+        submitted_momentum_z = submitted_momentum[reference_momentum[:, 2] > -0.7]
+
+        # Select only events where the polar angle is < pi-2 mrad
+        reference_momentum_theta = reference_momentum[polar_angle < np.pi-0.002]
+        submitted_momentum_theta = submitted_momentum[polar_angle < np.pi-0.002]
+
+        rme_momentum = np.sqrt(np.mean((reference_momentum - submitted_momentum)**2))
+        rme_momentum_z = np.sqrt(np.mean((reference_momentum_z - submitted_momentum_z)**2))
+        rme_momentum_theta = np.sqrt(np.mean((reference_momentum_theta - submitted_momentum_theta)**2))
+        
+        score_sum = rme_momentum + rme_momentum_z + rme_momentum_theta
+        if score_sum > 1.0:
+            accuracy = 0.0
+        else:
+            accuracy = 1.0 - (np.exp(score_sum) - 1.0) / (np.exp(1.0) - 1.0)
+    except Exception as _e:
+        e = str(_e)
+    _ = None if not rme_momentum else (rme_momentum, rme_momentum_z, rme_momentum_theta)
+    return accuracy*100.0, e, _

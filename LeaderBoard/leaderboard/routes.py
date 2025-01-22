@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from leaderboard.evaluator import * # EvaluateDIRC, EvaluateLowQ2
 from sqlalchemy.exc import SQLAlchemyError
-
+import pytz
 # Some default settings
 
 from uuid import NAMESPACE_OID, uuid1, uuid5
@@ -260,11 +260,19 @@ def traditional_login():
 @app.route("/submit", methods=['GET', 'POST'])
 @login_required
 def submit():
+    # check if Rome time is Jan 23 9.00 am. if not return to will_open
+    time = datetime.now()
+    # convert to Rome time
+    rome_time = time.astimezone(pytz.timezone('Europe/Rome'))
+    if rome_time.day != 23 or rome_time.month != 1 or rome_time.hour < 9:
+        flash("The submission is not open yet. Please wait until Jan 23, 9.00 am Rome time", "info")
+        #return render_template("will_open.html", title="Submission will open soon")
     if not github.authorized or not current_user.is_authenticated:
         flash("You are not authorized to access this page", "danger")
         return redirect(url_for("login"))
     data = {"username": current_user.username, "name": current_user.name}
     form = SubmitForm(data = data)
+    form.qnumber.choices = [(-1, "Select the Question")] + [(i, f'Question {i}: ' + app.config["Ques_Map"][i]) for i in range(1, 3)]
     form.username.render_kw = {"disabled": "disabled"}
     form.name.render_kw = {"disabled": "disabled"}
     if form.validate_on_submit():
@@ -272,7 +280,6 @@ def submit():
         _file = form.result_file.data
         now = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
         _filename = secure_filename("result_" + now + "_" + _file.filename )
-        
         qnumber = int(form.qnumber.data)
         res_q = app.config["Ques_Map"][qnumber]
         res_file = os.path.join(app.config["RES_FOLDER"], res_q, f"{res_q}.edm4eic.root")
@@ -284,7 +291,7 @@ def submit():
         func_to_call = eval(f"Evaluate{res_q}")
         # Evaluate the file
         print (res_file, filepath)
-        score, exe_err = func_to_call(filepath, res_file)
+        score, exe_err, vals = func_to_call(filepath, res_file)
         if exe_err:
             flash(f"Error in executing the evaluation script: {exe_err}", "danger")
             question = Question(userUUID = current_user.userHash,
@@ -299,13 +306,14 @@ def submit():
         else:
             flash(f"Your score for Question {qnumber} is {score}", "success")
             # Update the user score
+            evals = f"Evaluated RME full: {vals[0]:.2f} \n < 70% {vals[1]:.2f} \n mrad score: {vals[2]:.2f}" if vals else "Evaluated"
             question = Question(userUUID = current_user.userHash,
                                 qnumber = qnumber,
                                 qscore = score,
                                 filename = _filename,
                                 submit_time = datetime.now(),
                                 remarks = form.remark.data,
-                                eval_remarks = "Evaluated"
+                                eval_remarks = evals
                                 )
             user = User.query.get(current_user.git_id)
         try:

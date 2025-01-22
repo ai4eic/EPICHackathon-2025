@@ -179,7 +179,7 @@
         <tr>
             <td> {{ submission.qnumber }} </td>
             <td> {{ "%.3f"|format(submission.qscore) }} </td>
-            <td> {{ submission.submit_time }} </td>
+            <td> {{ submission.submit_time.strftime('%Y-%m-%d %H:%M') }} </td>
             <td> {{ submission.remarks }} </td>
             <td> {{ submission.eval_remarks }} </td>
         </tr>

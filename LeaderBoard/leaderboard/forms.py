@@ -24,7 +24,7 @@ class SubmitForm(FlaskForm):
     username = StringField('User name', validators=[DataRequired()])
     name = StringField('Full Name', validators=[DataRequired()])
     # Currently there is only one question
-    _choices = [(-1, "Select the Question")] + [(i, f'Question {i}') for i in range(1, 2)]
+    _choices = [(-1, "Select the Question")] + [(i, f'Question {i}') for i in range(1, 3)]
     qnumber = SelectField('Submitting Solution for Question',
                         choices=_choices,
                         validators=[DataRequired(), validate_qnumber],
@@ -38,7 +38,7 @@ class SubmitForm(FlaskForm):
                                         FileRequired()
                                         ] 
                             )
-    submit = SubmitField('Evaluate Results', render_kw={"onclick": "loading();"})
+    submit = SubmitField('Evaluate Results')
 
 
 class SignUpForm(FlaskForm):

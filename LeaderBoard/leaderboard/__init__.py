@@ -85,12 +85,12 @@ if not os.environ.get("RES_FOLDER"):
     raise FileNotFoundError(f"Results folder {app.config['RES_FOLDER']} does not exist. Please check the path")
 app.config["RES_FOLDER"] = os.environ.get("RES_FOLDER")
 app.config["Ques_Map"] = {
-    1: "DIRC"
+    1: "LowQ2",
+    2: "DIRC"
 }
 # check if the folder and file exists for each of Question
 for key, value in app.config["Ques_Map"].items():
     if not os.path.exists(app.config['RES_FOLDER'] + f"/{value}/{value}.edm4eic.root"):
-        print (app.config['RES_FOLDER'] + f"/{value}/{value}.edm4eic.root")
         raise FileNotFoundError(f"Results file {app.config['RES_FOLDER']}/{value}/{value}.edm4eic.root does not exist. Please check the path")
 
 app.config["ORG_NAME"] = os.environ.get("ORG_NAME", "eic")
