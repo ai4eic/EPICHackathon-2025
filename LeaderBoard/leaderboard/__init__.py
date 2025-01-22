@@ -25,7 +25,7 @@ app.config["DB_PATH"] = os.path.join(app.config["DB_DIR"], app.config["DB_NAME"]
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + app.config["DB_PATH"]
 app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False # True to track modifications but memory intensive
 
-app.app_context().push() # Push the application context to create the database
+#app.app_context().push() # Push the application context to create the database
 db = SQLAlchemy(app)
 
 bcrypt = Bcrypt(app)
@@ -55,12 +55,13 @@ login_manager.session_protection = "strong"
 # app.config["SESSION_PERMANENT"] = True
 # # Set the lifetime of the session
 # app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=4) # 4 hours
-# app.config["SESSION_USE_SIGNER"] = True # Sign the session cookie
+app.config["SESSION_USE_SIGNER"] = True # Sign the session cookie
 # #app.config["SESSION_FILE_DIR"] = "flask_sessions"  # Directory to store session files
-# app.config["SESSION_COOKIE_SECURE"] = True  # Use HTTPS only
-# app.config["SESSION_COOKIE_HTTPONLY"] = True  # Prevent JavaScript access
-# app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Mitigate CSRF
-# app.config["SESSION_COOKIE_NAME"] = "ePIC_Hackathon_2025"  # Custom cookie name
+app.config["SESSION_COOKIE_SECURE"] = True  # Use HTTPS only
+app.config["SESSION_COOKIE_HTTPONLY"] = True  # Prevent JavaScript access
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Mitigate CSRF
+app.config["SESSION_COOKIE_NAME"] = "ePIC_Hackathon_2025"  # Custom cookie name
+app.config["SESSION_COOKIE_DOMAIN"] = False
 # sess = Session(app)
 
 # Make sure to have GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in the environment
