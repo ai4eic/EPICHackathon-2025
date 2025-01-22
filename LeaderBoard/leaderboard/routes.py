@@ -147,10 +147,12 @@ def signup(uname):
     print ("USER DATA: ", user_data)
     _user_data = {"username": user_data['username'], "fname": user_data['fname'], "lname": user_data['lname']}
     form = SignUp(data = _user_data)
+    print ("csrf_token: ", form.csrf_token.data)
     if form.validate_on_submit():
+        print ("FORM VALIDATED")
         if not form.csrf_token.data:
             flash("CSRF token is missing or invalid. Please try again", "danger")
-            return redirect(url_for('signup'))
+            return redirect(url_for('leaderboard'))
         try:
             name = form.fname.data + " " + form.lname.data
             user = User(username = form.username.data,

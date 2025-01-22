@@ -71,7 +71,7 @@ github_blueprint = make_github_blueprint(
     scope = "read:org"
 )
 
-app.register_blueprint(github_blueprint, url_prefix="/github")
+app.register_blueprint(github_blueprint, url_prefix="/login")
 
 if not os.environ.get("UPLOAD_FOLDER"):
     os.environ["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), 'submissions')
