@@ -36,6 +36,7 @@ def bad_request(e):
 @app.route("/")
 @app.route("/leaderboard")
 def leaderboard():
+    print ("CURRENT USER: ", current_user)
     print (User.query.all())
     UserInfo = User.query.order_by(User.overallscore.desc()).all()
     return render_template('leaderboard.html', userinfo = UserInfo)
