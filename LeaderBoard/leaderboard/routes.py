@@ -302,8 +302,6 @@ def submit():
                                 remarks = form.remark.data,
                                 eval_remarks = f"Evaluation Failed <<<< {exe_err} >>>>"
                                 )
-            
-            return redirect(url_for('submit'))
         else:
             flash(f"Your score for Question {qnumber} is {score}", "success")
             # Update the user score
@@ -330,7 +328,8 @@ def submit():
                 user.Nattempts += 1
             user.overallscore = user.q1_bestscore + user.q2_bestscore  # update the overall score
             # commit the changes 
-            db.session.commit()       
+            db.session.commit()   
+            redirect(url_for('/leaderboard'))    
         except Exception as e:
             print (f"ERROR IN UPDATING DATABASE for {current_user} for question {question}: \n ----- ", e)
             flash(f"Error in updating the database. \n Try resubmitting your solutions or Please contact ePIC Hackathon Organizers", "danger")
