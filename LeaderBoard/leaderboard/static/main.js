@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const timeDifference = targetDate - now;
 
         if (timeDifference <= 0) {
-            timerElement.innerHTML = "Time's up!";
+            timerElement.innerHTML = "ePIC AI/ML Session has ended!";
             clearInterval(interval);
             return;
         }

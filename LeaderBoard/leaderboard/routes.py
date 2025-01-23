@@ -36,8 +36,8 @@ def bad_request(e):
 @app.route("/")
 @app.route("/leaderboard")
 def leaderboard():
-    print ("CURRENT USER: ", current_user)
-    print (User.query.all())
+    #print ("CURRENT USER: ", current_user)
+    #print (User.query.all())
     UserInfo = User.query.order_by(User.overallscore.desc()).all()
     return render_template('leaderboard.html', userinfo = UserInfo)
 
@@ -45,8 +45,6 @@ def leaderboard():
 @app.route("/allusers")
 def allusers():
     users = User.query.all()
-    for user in users:
-        print ("user", user.username)
     return render_template('allusers.html', userInfo = users)
 
 @app.route("/profile", methods=['GET', 'POST'])
@@ -67,7 +65,7 @@ def profile():
     form.change_submitlabel("Update Profile")
     form.username.render_kw = {"disabled": "disabled"}
     form.password.render_kw = {"placeholder": "Change Password"}
-    print ("current_questions", current_user.questions)
+    #print ("current_questions", current_user.questions)
     if form.validate_on_submit():
         # check if the form data is changed
         form_changed = False
@@ -89,7 +87,7 @@ def profile():
             return redirect(url_for('logout'))
         except SQLAlchemyError as e:
             db.session.rollback()
-            print (user.password)
+            #print (user.password)
             print (f"ERROR IN UPDATING DATABASE for {current_user}: \n ----- ", e)
             flash("Cannot update the profile. Please try again", "danger")
             return redirect(url_for('profile'))
@@ -109,14 +107,14 @@ def logout():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    print ("USER AUTHENTICATED: ", current_user.is_authenticated)
+    #print ("USER AUTHENTICATED: ", current_user.is_authenticated)
     if current_user.is_authenticated:
-        print ("USER AUTHENTICATED: ", current_user.username)
+        #print ("USER AUTHENTICATED: ", current_user.username)
         if github.authorized:
             flash("You are already logged in", "info")
             return redirect(url_for("leaderboard"))
         else:
-            print ("GITHUB NOT AUTHORIZED")
+            #print ("GITHUB NOT AUTHORIZED")
             return redirect(url_for("github.login"))
     else:
         return redirect(url_for("github.login"))
@@ -127,7 +125,7 @@ def github_authorized():
         flash("Authentication error. Please login via GitHub", "danger")
         return redirect(url_for("leaderboard"))
     account_resp = github.get("/user")
-    print ("ACCOUNT RESPONSE: ", account_resp.ok)
+    #print ("ACCOUNT RESPONSE: ", account_resp.ok)
     if account_resp.ok:
         account_info = account_resp.json()
         git_id = account_info.get('id')
@@ -162,7 +160,7 @@ def signup(uname):
         flash("Authentication error. Please login via GitHub", "danger")
         return redirect(url_for("github.login"))
     org_resp = github.get(f"/orgs/{app.config['ORG_NAME']}/members/{uname}")
-    print ("ORG RESPONSE: ", org_resp.status_code)
+    #print ("ORG RESPONSE: ", org_resp.status_code)
     if (org_resp.status_code != 204 and not app.config['DEBUG']):
         flash("You are not a member of the EIC organization, please contact ePIC Hackathon Organizers", "danger")
         return redirect(url_for("leaderboard"))
@@ -194,12 +192,12 @@ def signup(uname):
     else:
         flash("Unable to get user information from GitHub", "danger")
         return redirect(url_for("leaderboard"))
-    print ("USER DATA: ", user_data)
+    #print ("USER DATA: ", user_data)
     _user_data = {"username": user_data['username'], "fname": user_data['fname'], "lname": user_data['lname']}
     form = SignUpForm(data = _user_data)
     #print ("csrf_token: ", form.csrf_token.data)
     if form.validate_on_submit():
-        print ("FORM VALIDATED")
+        #print ("FORM VALIDATED")
         if not form.csrf_token.data:
             flash("CSRF token is missing or invalid. Please try again", "danger")
             return redirect(url_for('leaderboard'))
@@ -233,7 +231,7 @@ def signup(uname):
             flash(f"Account creation failed for {form.username.data}! Contact ePIC Hackathon Organizers", "danger")
             return redirect(url_for('logout'))
         except Exception as e:
-            print (e)
+            print ("ERROR IN CREATING USER: ", e)
             flash(f"Account creation failed for {form.username.data}! Contact ePIC Hackathon Organizers", "danger")
             return redirect(url_for('leaderboard'))
     return render_template('signup.html', title='Sign Up', form=form)
