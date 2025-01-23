@@ -284,14 +284,14 @@ def submit():
         user_folder = os.path.join(app.config['UPLOAD_FOLDER'], current_user.userHash, f'{qnumber}')
         if(not os.path.exists(user_folder)):
             os.makedirs(user_folder)
+        else:
+            os.system(f"rm -rf {user_folder}/*")
         filepath = os.path.join(user_folder, _filename)
         _file.save(filepath)
         func_to_call = eval(f"Evaluate{res_q}")
         # Evaluate the file
         #print (res_file, filepath)
         score, exe_err, vals = func_to_call(filepath, res_file)
-        # delete the file
-        os.system(f"rm -rf {user_folder}")
         if exe_err:
             flash(f"Error in executing the evaluation script: {exe_err}", "danger")
             question = Question(userUUID = current_user.userHash,
@@ -328,7 +328,7 @@ def submit():
                 user.q2_bestscore = max(user.q2_bestscore, score)
                 user.q2_attempts += 1
                 user.Nattempts += 1
-            user.overallscore += score
+            user.overallscore += user.q1_bestscore + user.q2_bestscore  # update the overall score
             # commit the changes 
             db.session.commit()       
         except Exception as e:
