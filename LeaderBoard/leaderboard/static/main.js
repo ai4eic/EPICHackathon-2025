@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
 
-        timerElement.innerHTML = `Countdown until end: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        timerElement.innerHTML = `Hackathon ends in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
 
     const interval = setInterval(updateCountdown, 1000);
