@@ -94,7 +94,7 @@ for key, value in app.config["Ques_Map"].items():
         raise FileNotFoundError(f"Results file {app.config['RES_FOLDER']}/{value}/{value}.edm4eic.root does not exist. Please check the path")
 
 app.config["ORG_NAME"] = os.environ.get("ORG_NAME", "eic")
-app.config["MAX_RATE_LIMIT"] = True
+app.config["MAX_RATE_LIMIT"] = False
 
 from leaderboard import routes
 

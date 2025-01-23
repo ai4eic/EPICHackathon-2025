@@ -40,7 +40,7 @@ def EvaluateDIRC(submit, reference):
     except Exception as _e:
         e = str(_e)
 
-    return accuracy, e, None
+    return accuracy*100.0, e, None
 
 
 
