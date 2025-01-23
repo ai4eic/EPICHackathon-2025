@@ -97,7 +97,7 @@ app.config["ORG_NAME"] = os.environ.get("ORG_NAME", "eic")
 app.config["MAX_RATE_LIMIT"] = False
 
 # SET MAX FILE LIMIT
-app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 20 MB
+app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024  # 20 MB
 
 from leaderboard import routes
 
