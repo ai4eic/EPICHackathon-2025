@@ -292,6 +292,8 @@ def submit():
         # Evaluate the file
         print (res_file, filepath)
         score, exe_err, vals = func_to_call(filepath, res_file)
+        # delete the file
+        os.remove(filepath)
         if exe_err:
             flash(f"Error in executing the evaluation script: {exe_err}", "danger")
             question = Question(userUUID = current_user.userHash,
@@ -302,6 +304,7 @@ def submit():
                                 remarks = form.remark.data,
                                 eval_remarks = f"Evaluation Failed <<<< {exe_err} >>>>"
                                 )
+            
             return redirect(url_for('submit'))
         else:
             flash(f"Your score for Question {qnumber} is {score}", "success")
