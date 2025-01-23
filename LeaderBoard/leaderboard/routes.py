@@ -302,6 +302,7 @@ def submit():
                                 remarks = form.remark.data,
                                 eval_remarks = f"Evaluation Failed <<<< {exe_err} >>>>"
                                 )
+            user = User.query.get(current_user.git_id)
         else:
             flash(f"Your score for Question {qnumber} is {score}", "success")
             # Update the user score
