@@ -328,7 +328,7 @@ def submit():
                 user.q2_bestscore = max(user.q2_bestscore, score)
                 user.q2_attempts += 1
                 user.Nattempts += 1
-            user.overallscore += user.q1_bestscore + user.q2_bestscore  # update the overall score
+            user.overallscore = user.q1_bestscore + user.q2_bestscore  # update the overall score
             # commit the changes 
             db.session.commit()       
         except Exception as e:
