@@ -178,10 +178,22 @@
         {% for submission in submissions %}
         <tr>
             <td> {{ submission.qnumber }} </td>
-            <td> {{ "%.3f"|format(submission.qscore) }} </td>
+            <td> {{ "" if submission.qscore <= 0 else "%.3f"|format(submission.qscore) }} </td>
             <td> {{ submission.submit_time.strftime('%Y-%m-%d %H:%M') }} </td>
             <td> {{ submission.remarks }} </td>
-            <td> {{ submission.eval_remarks }} </td>
+            {% if submission.qscore > 0 %}
+            <td>
+                <a href="{{ url_for('show_rawmessage', qid = submission.id) }}" target="_blank"> 
+                    Evaluated Fine
+                </a> 
+            </td>
+            {% else %}
+            <td>
+                <a href="{{ url_for('show_rawmessage', qid = submission.id) }}" target="_blank"> 
+                    Evaluation Error
+                </a> 
+            </td>
+            {% endif %}
         </tr>
         {% endfor %}
     </tbody>

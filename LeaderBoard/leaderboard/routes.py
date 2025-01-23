@@ -41,7 +41,10 @@ def leaderboard():
     UserInfo = User.query.order_by(User.overallscore.desc()).all()
     return render_template('leaderboard.html', userinfo = UserInfo)
 
-
+@app.route("/show_rawmessage/<int:qid>")
+def show_rawmessage(qid):
+    submission = Question.query.get(qid)
+    return render_template('show_rawmessage.html', submission = submission)
 @app.route("/allusers")
 def allusers():
     users = User.query.all()
