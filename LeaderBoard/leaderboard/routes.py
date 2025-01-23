@@ -125,7 +125,7 @@ def login():
 def github_authorized():
     if not github.authorized:
         flash("Authentication error. Please login via GitHub", "danger")
-        return redirect(url_for('index'))
+        return redirect(url_for("leaderboard"))
     account_resp = github.get("/user")
     print ("ACCOUNT RESPONSE: ", account_resp.ok)
     if account_resp.ok:
@@ -154,7 +154,7 @@ def github_authorized():
         return redirect(url_for("leaderboard"))
     else:
         flash("Unable to get user information from GitHub", "danger")
-        return redirect(url_for('index'))
+        return redirect(url_for("leaderboard"))
         
 @app.route("/signup/<uname>", methods=['GET', 'POST'])
 def signup(uname):
@@ -165,7 +165,7 @@ def signup(uname):
     print ("ORG RESPONSE: ", org_resp.status_code)
     if (org_resp.status_code != 204 and not app.config['DEBUG']):
         flash("You are not a member of the EIC organization, please contact ePIC Hackathon Organizers", "danger")
-        return redirect(url_for('index'))
+        return redirect(url_for("leaderboard"))
     
     account_resp = github.get("/user")
     user_data = {}
@@ -193,7 +193,7 @@ def signup(uname):
         return redirect(url_for("leaderboard"))
     else:
         flash("Unable to get user information from GitHub", "danger")
-        return redirect(url_for('index'))
+        return redirect(url_for("leaderboard"))
     print ("USER DATA: ", user_data)
     _user_data = {"username": user_data['username'], "fname": user_data['fname'], "lname": user_data['lname']}
     form = SignUpForm(data = _user_data)
