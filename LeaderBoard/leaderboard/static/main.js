@@ -1,6 +1,6 @@
 // Countdown timer for January 23, 1:00 PM Rome Time
 document.addEventListener('DOMContentLoaded', function () {
-    const targetDate = new Date('2025-01-23T13:00:00+01:00'); // January 23, 1:00 PM Rome Time (CET)
+    const targetDate = new Date('2025-01-28T13:00:00+01:00'); // January 23, 1:00 PM Rome Time (CET)
     const timerElement = document.getElementById('countdown-timer');
 
     function updateCountdown() {
