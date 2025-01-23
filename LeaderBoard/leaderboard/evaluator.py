@@ -1,6 +1,7 @@
 import awkward as ak
 import numpy as np
 import uproot
+import traceback
 
 def EvaluateDIRC(submit, reference):
     accuracy = -1.0
@@ -38,7 +39,7 @@ def EvaluateDIRC(submit, reference):
             (reference_target_is_kaon & (np.abs(submitted_pdg) == 321))
         )
     except Exception as _e:
-        e = str(_e)
+        e = traceback.format_exc()
 
     return accuracy*100.0, e, None
 
@@ -85,6 +86,6 @@ def EvaluateLowQ2(submit, reference):
         else:
             accuracy = 1.0 - (np.exp(score_sum) - 1.0) / (np.exp(1.0) - 1.0)
     except Exception as _e:
-        e = str(_e)
+        e = traceback.format_exc()
     _ = None if not rme_momentum else (rme_momentum, rme_momentum_z, rme_momentum_theta)
     return accuracy*100.0, e, _

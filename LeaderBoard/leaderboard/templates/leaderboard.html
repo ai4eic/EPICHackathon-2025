@@ -12,7 +12,9 @@
       <tr>
         <th>Rank </th>
         <th> User </th>
-        <th> Score </th>
+        <th> Total Score </th>
+        <th> Q1 Score </th>
+        <th> Q2 Score </th>
         <th> Total Submissions </th>
       </tr>
     </thead>
@@ -27,26 +29,36 @@
       <td class = "rank{{loop.index}}">🥇 {{loop.index}}</td>
       <td class = "rank{{loop.index}}">{{user.name}}</td>
       <td class = "rank{{loop.index}}">{{"%.3f"|format(user.overallscore)}}</td>
+      <td class = "rank{{loop.index}}">{{"Not tried" if user.q1score <=0 else "%.3f"|format(user.q1score)}}</td>
+      <td class = "rank{{loop.index}}">{{"Not tried" if user.q2score <=0 else "%.3f"|format(user.q2score)}}</td>
       <td class = "rank{{loop.index}}">{{user.Nattempts}}</td>
       {% elif loop.index == 2 and user.overallscore > 0 %}
       <td class = "rank{{loop.index}}">🥈 {{loop.index}}</td>
       <td class = "rank{{loop.index}}">{{user.name}}</td>
       <td class = "rank{{loop.index}}">{{"%.3f"|format(user.overallscore)}}</td>
+      <td class = "rank{{loop.index}}">{{"Not tried" if user.q1score <=0 else "%.3f"|format(user.q1score)}}</td>
+      <td class = "rank{{loop.index}}">{{"Not tried" if user.q2score <=0 else "%.3f"|format(user.q2score)}}</td>
       <td class = "rank{{loop.index}}">{{user.Nattempts}}</td>
       {% elif loop.index == 3 and user.overallscore > 0 %}
       <td class = "rank{{loop.index}}">🥉 {{loop.index}}</td>
       <td class = "rank{{loop.index}}">{{user.name}}</td>
       <td class = "rank{{loop.index}}">{{"%.3f"|format(user.overallscore)}}</td>
+      <td class = "rank{{loop.index}}">{{"Not tried" if user.q1score <=0 else "%.3f"|format(user.q1score)}}</td>
+      <td class = "rank{{loop.index}}">{{"Not tried" if user.q2score <=0 else "%.3f"|format(user.q2score)}}</td>
       <td class = "rank{{loop.index}}">{{user.Nattempts}}</td>
       {% elif user.overallscore == 0.0 %}
       <td> </td>
       <td>{{user.name}}</td>
-      <td>{{"%.3f"|format(user.overallscore)}}</td>
+      <td>Yet to Submit</td>
+      <td> </td>
+      <td> </td>
       <td>{{user.Nattempts}}</td>
       {% else %}
       <td>{{loop.index}}</td>
       <td>{{user.name}}</td>
       <td>{{"%.3f"|format(user.overallscore)}}</td>
+      <td class = "rank{{loop.index}}">{{"Not tried" if user.q1score <=0 else "%.3f"|format(user.q1score)}}</td>
+      <td class = "rank{{loop.index}}">{{"Not tried" if user.q2score <=0 else "%.3f"|format(user.q2score)}}</td>
       <td>{{user.Nattempts}}</td>
       {% endif %}
       </tr>
