@@ -293,7 +293,7 @@ def submit():
         print (res_file, filepath)
         score, exe_err, vals = func_to_call(filepath, res_file)
         # delete the file
-        os.remove(filepath)
+        os.system(f"rm -f {user_folder}")
         if exe_err:
             flash(f"Error in executing the evaluation script: {exe_err}", "danger")
             question = Question(userUUID = current_user.userHash,
