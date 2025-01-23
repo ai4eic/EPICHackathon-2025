@@ -197,7 +197,7 @@ def signup(uname):
     print ("USER DATA: ", user_data)
     _user_data = {"username": user_data['username'], "fname": user_data['fname'], "lname": user_data['lname']}
     form = SignUpForm(data = _user_data)
-    print ("csrf_token: ", form.csrf_token.data)
+    #print ("csrf_token: ", form.csrf_token.data)
     if form.validate_on_submit():
         print ("FORM VALIDATED")
         if not form.csrf_token.data:
@@ -290,10 +290,10 @@ def submit():
         _file.save(filepath)
         func_to_call = eval(f"Evaluate{res_q}")
         # Evaluate the file
-        print (res_file, filepath)
+        #print (res_file, filepath)
         score, exe_err, vals = func_to_call(filepath, res_file)
         # delete the file
-        os.system(f"rm -f {user_folder}")
+        os.system(f"rm -rf {user_folder}")
         if exe_err:
             flash(f"Error in executing the evaluation script: {exe_err}", "danger")
             question = Question(userUUID = current_user.userHash,
@@ -338,7 +338,7 @@ def submit():
             flash(f"Error in updating the database. \n Try resubmitting your solutions or Please contact ePIC Hackathon Organizers", "danger")
             db.session.rollback()
             return redirect(url_for('submit'))
-        print (score)
+        #print (score)
         
     return render_template("submit.html", title="Submit your solutions", form = form)
 
