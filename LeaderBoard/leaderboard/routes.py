@@ -270,6 +270,9 @@ def submit():
     if rome_time.day != 23 or rome_time.month != 1 or rome_time.hour < 9:
         flash("The submission is not open yet. Please wait until Jan 23, 9.00 am Rome time", "info")
         #return render_template("will_open.html", title="Submission will open soon")
+    if rome_time.day == 28 and rome_time.month == 1 and rome_time.hour >= 13:
+        flash("The submission is closed. Please wait for the next round", "info")
+        return render_template("hackathon_closed.html", title="Hackathon Closed")
     if not github.authorized or not current_user.is_authenticated:
         flash("You are not authorized to access this page", "danger")
         return redirect(url_for("login"))
