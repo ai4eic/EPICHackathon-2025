@@ -1,21 +1,21 @@
-# AI4EICHackathon-2023
-Source code base for the planned AI4EIC hackathon 2023
+# ePIC Hackathon 2025
+Source code is for the ePIC Hackathon 2025. It has been deployed on [ePIC Hackthon 2025](https://epichackathon2025.pythonanywhere.com)
 
 ## LeaderBoard
 
-This is from 2022 hackathon. 
+The code base is taken from [AI4EIC 2022 hackathon](https://indico.bnl.gov/event/16586/page/435-hackathon). 
 
 ### Setup instructions. 
 
-1. `git clone https://github.com/AI4EIC/AI4EICHackathon-2023.git`
-2. `cd AI4EICHackathon-2023/LeaderBoard`
-3. `conda create --name env_ai4eic_hack`
-4. `conda install pip`
-5. `pip install -r requirements.txt`
+The python required for this project is `python==3.10`.
+1. `git clone https://github.com/ai4eic/EPICHackathon-2025.git`
+2. `python3.10 -m venv env_ePICHack`
+3. `source env_ePICHack/bin/activate`
+4. `pip install -r EPICHackathon-2025/requirements.txt` 
 
 ### Running the webapp
-1. `cd AI4EICHackathon-2023/LeaderBoard && python run_app.py`
-2. `open http://127.0.0.1:5500` -- Make sure these ports are not used else, change it in `run_app.py`
+1. `cd ePICHackthon-2025/LeaderBoard && python run.py`
+2. `open http://127.0.0.1:5500` -- Make sure these ports are not used else, change it in `run.py`
 
 
 

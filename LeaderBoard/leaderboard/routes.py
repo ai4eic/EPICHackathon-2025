@@ -21,10 +21,12 @@ def handle_exception(e):
 """
 @app.before_request
 def csrf_protect():
+    # protect against CSRF attacks
     if request.method in ("POST", "PUT", "DELETE"):
         csrf.protect()
 @app.errorhandler(404)
 def page_not_found(e):
+    # note that we set the 404 status explicitly
     return render_template('page_not_found.html'), 404
 
 @app.errorhandler(403)
